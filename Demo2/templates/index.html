@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="post">
+    <label>用户名：</label><input type="text" name="username"><br>
+    <label>密码：</label><input type="password" name="password"><br>
+    <label>确认密码：</label><input type="password" name="password2"><br>
+    <input type="submit" value="提交"><br>
+    {#使用遍历获取闪现的消息#}
+    {% for message in get_flashed_messages() %}
+        {{ message }}
+    {% endfor %}
+
+</form>
+
+<hr>
+<!--使用wtf-->
+<form method="post">
+    {{ my_form.csrf_token() }}
+    {{ my_form.username.label }} {{ my_form.username }}<br>
+    {{ my_form.password.label }} {{ my_form.password }}<br>
+    {{ my_form.password2.label }} {{ my_form.password2 }}<br>
+    {{ my_form.submit }}<br>
+</form>
+
+<hr>
+
+</body>
+</html>
+

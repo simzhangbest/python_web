@@ -6,7 +6,7 @@ app = Flask(__name__)
 def index():
     url_str = 'www.baidu.com'
 
-    my_list = [1,3,4,7]
+    my_list = [1,3,4,7,5]
 
     my_dict = {
         "name":"simzhng",

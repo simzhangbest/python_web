@@ -25,9 +25,25 @@
 <!--int 的使用-->
 {{ my_int }} <br>
 
-
 <!--以下是控制代码块的使用-->
 <hr>
+{% for num in my_list %}
+    {% if num > 3 %}
+        {{ num }} <br>
+    {% endif %}
+{% endfor %}
+<hr>
+
+
+<p>This is some text in a very short paragraph</p>
+<hr>
+{#过滤器#}
+
+{#字符串大写#}
+{{ url_str | upper }} <br>
+
+{#字符串翻转#}
+{{ url_str | reverse }} <br>
 
 
 </body>
