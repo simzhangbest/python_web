@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template,flash,request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
@@ -24,9 +24,11 @@ app.secret_key='simzhang'
     b 模板中按照格式，依次for循环 作者和书籍(作者获取书籍，用的是关系引用)
 5、使用wtf表单
     a 自定义表单类
-    b 模板中显示
+    b 模板中显示 
     c secret_key / 编码问题 / csrf_token 问题
 6、实现增删逻辑
+    a 增加数据
+    b 删除书籍  --> 网页中删除--> 点击需要发送书籍的id给删除书籍的路由 --> 路由需要接受参数
 '''
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -70,11 +72,69 @@ class AuthorFrom(FlaskForm):
     book = StringField('书籍：', validators=[data_required()])
     submit = SubmitField('提交')
 
-@app.route('/')
+
+@app.route('/delete_book/<book_id>')
+def delte_book(book_id):
+    #查询数据库是否有该id的数据，有就删除，没有就提示错误
+
+    # 返回当前的网址，重定向
+    # url_for 需要传入视图函数名，返回视图函数对应路由
+    return redirect(url_for('index'))
+
+@app.route('/', methods=['GET','POST'])
 def index():
     # 创建自定义的表单类
     author_form = AuthorFrom()
 
+    '''
+    验证逻辑：
+    1、 调用wtf验证函数
+    2、 验证通过获取数据
+    3、 判断作者是否存在
+    4、 如果作者存在，判断书籍是否存在，没有重复书籍就添加数据，如果存在就提示错误
+    5、 如果作者不存在，添加作者和书籍
+    6、 验证不通过就提示错误
+    '''
+    # 1、调用wtf的函数实现验证
+    if author_form.validate_on_submit():
+        # 2、验证通过获取数据
+        author_name = author_form.author.data
+        book_name = author_form.book.data
+
+        # 3、判断作者是否存在
+        author = Author.query.filter_by(name=author_name).first()
+        # 4、 如果作者存在
+        if author:
+            #  判断书籍是否存在，没有重复书籍就添加数据，如果重复，就提示错误
+            book = Book.query.filter_by(name=book_name).first()
+            if book:
+                flash('已存在同名书籍')
+            else:
+                try:
+                    new_book = Book(name=book_name, author_id=author.id)
+                    db.session.add(new_book)
+                    db.session.commit()
+                except Exception as e:
+                    print(e)
+                    flash('添加书籍失败')
+                    db.session.rollback()
+        else:
+            # 5、 如果作者不存在，添加作者和书籍
+            try:
+                new_author=Author(name=author_name)
+                db.session.add(new_author)
+                db.session.commit()
+                new_book=Book(name=book_name,author_id=new_author.id)
+                db.session.add(new_book)
+                db.session.commit()
+            except Exception as e:
+                print(e)
+                flash('添加作者书籍失败')
+                db.session.rollback()
+    else:
+        # 6、验证不通过，提示错误
+        if request.method == 'POST':
+            flash('参数不全')
 
     # 查询作者的信息，让信息传递给模板
     authors = Author.query.all()
