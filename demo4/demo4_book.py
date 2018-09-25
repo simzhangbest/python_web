@@ -29,6 +29,7 @@ app.secret_key='simzhang'
 6、实现增删逻辑
     a 增加数据
     b 删除书籍  --> 网页中删除--> 点击需要发送书籍的id给删除书籍的路由 --> 路由需要接受参数
+    
 '''
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -73,10 +74,40 @@ class AuthorFrom(FlaskForm):
     submit = SubmitField('提交')
 
 
-@app.route('/delete_book/<book_id>')
-def delte_book(book_id):
-    #查询数据库是否有该id的数据，有就删除，没有就提示错误
+@app.route('/delete_author/<author_id>')
+def delete_author(author_id):
+    author = Author.query.get(author_id)
 
+    if author:
+        try:
+            Book.query.filter_by(author_id=author.id).delete()
+            db.session.delete(author)
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            flash("删除作者失败")
+            db.session.rollback()
+    else:
+        flash("作者找不到")
+
+    return redirect(url_for('index'))
+
+@app.route('/delete_book/<book_id>')
+def delete_book(book_id):
+    #查询数据库是否有该id的数据，有就删除，没有就提示错误
+    book = Book.query.get(book_id)
+    #如果有就删除
+    if book:
+        try:
+            db.session.delete(book)
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            flash("删除书籍出错")
+            db.session.rollback()
+    else:
+        # 没有就提示
+        flash("没有这本书")
     # 返回当前的网址，重定向
     # url_for 需要传入视图函数名，返回视图函数对应路由
     return redirect(url_for('index'))
@@ -145,20 +176,20 @@ if __name__ == '__main__':
     db.create_all()
 
     # 生成数据
-    au1 = Author(name='老王')
-    au2 = Author(name='老惠')
-    au3 = Author(name='老刘')
+    au1 = Author(name='simzhang1')
+    au2 = Author(name='simzhang2')
+    au3 = Author(name='simzhang3')
 
     # 把数据提交给用户会话
     db.session.add_all([au1, au2, au3])
     # 提交会话
     db.session.commit()
     # 把数据提交给用户会话
-    bk1 = Book(name='老万的会议',author_id = au1.id)
-    bk2 = Book(name='老gg会议', author_id = au2.id)
-    bk3 = Book(name='老saf会议', author_id = au3.id)
-    bk4 = Book(name='老万nn会议', author_id = au1.id)
-    bk5 = Book(name='老fuck的会议', author_id = au3.id)
+    bk1 = Book(name='python',author_id = au1.id)
+    bk2 = Book(name='java', author_id = au2.id)
+    bk3 = Book(name='c++', author_id = au3.id)
+    bk4 = Book(name='scala', author_id = au1.id)
+    bk5 = Book(name='go', author_id = au3.id)
 
     # 提交会话
     db.session.add_all([bk1,bk2,bk3,bk4,bk5])
